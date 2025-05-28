@@ -1,0 +1,15 @@
+{
+    "boot_time":  "\/Date(1747839289500)\/",
+    "virtual_machines":  [
+                             {
+                                 "Name":  "al2023-base.local",
+                                 "Uptime":  1434973,
+                                 "IPs":  "172.25.206.13"
+                             },
+                             {
+                                 "Name":  "eight-four.local",
+                                 "Uptime":  57183164,
+                                 "IPs":  "172.25.199.229"
+                             }
+                         ]
+}
