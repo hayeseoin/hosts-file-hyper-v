@@ -24,6 +24,14 @@ This script can be set up as a scheduled task in Windows to automate this behavi
 
 Ensure the config file is set up correctly. 
 
+Set this up as a scheduled task in Windows. To run as a scheduled task you must run `run_hidden.vbs` otherwise an annoying Powershell popup comes up every time. 
+
+In Windows task scheduler Actions:
+ - Program/script: wscript.exe
+ - Add arguments: "C:\path\to\script\run_hidden.vbs"
+ - Start in: "C:\path\to\script\"
+
+
 `wslSwitch` and `defaultSwitch` must match the names of the corresponding switches in the Hyper-V Virtual Switch Manager. 
 
 `new_vm_threshold` - If a VM comes online and its running time is below this number, the host file will be updated. 
