@@ -1,7 +1,8 @@
 {
-  "hypervHostsCache": ".\\hyperv-vhosts-cache.json",
+  "hypervHostsCache": ".\\cache.json",
   "logsDir": ".\\logs",
   "wslSwitch": "vEthernet (WSL (Hyper-V firewall))",
   "defaultSwitch": "vEthernet (Default Switch)",
-  "hosts_file_path": "C:\\Windows\\System32\\drivers\\etc\\hosts"
+  "hosts_file_path": "C:\\Windows\\System32\\drivers\\etc\\hosts",
+  "new_vm_threshold": 90000
 }

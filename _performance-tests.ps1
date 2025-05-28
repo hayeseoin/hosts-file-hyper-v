@@ -1,5 +1,3 @@
-# echo 'These are some performance checks..'
-
+# Check performance by running this manually
 $timeTaken = Measure-Command { .\entrypoint.ps1 }
-# echo 'in milliseconds'
 echo $timeTaken.TotalMilliseconds

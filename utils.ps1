@@ -14,7 +14,7 @@ function Detect-New-VMs() {
             ($_.EnabledState -eq 2) -and ($_.OnTimeInMilliseconds -gt $0)
         } | Select-Object ElementName, OnTimeInMilliseconds
 
-    $thresholdMs =  90 * 1000  # 1.5 minutes
+    $thresholdMs =  $config.new_vm_threshold
     
     $recentVMs = $vmUptimes | Where-Object {
         $_.OnTimeInMilliseconds -lt $thresholdMs
