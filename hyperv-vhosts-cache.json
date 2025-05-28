@@ -1,34 +1,20 @@
 {
     "virtual_machines":  [
                              {
-                                 "Name":  "01-test.local",
-                                 "BootTime":  "\/Date(1748443279010)\/",
-                                 "IPs":  "172.25.192.232",
-                                 "HasRestarted":  false
+                                 "Name":  "al2023-base",
+                                 "BootTime":  "\/Date(1748463337318)\/",
+                                 "IPs":  "172.25.213.218"
                              },
                              {
-                                 "Name":  "02-test.local",
-                                 "BootTime":  "\/Date(1748443421389)\/",
-                                 "IPs":  "172.25.205.57",
-                                 "HasRestarted":  false
-                             },
-                             {
-                                 "Name":  "03-test.local",
-                                 "BootTime":  "\/Date(1748443001165)\/",
-                                 "IPs":  "172.25.202.43",
-                                 "HasRestarted":  false
-                             },
-                             {
-                                 "Name":  "al2023-base.local",
-                                 "BootTime":  "\/Date(1748443000478)\/",
-                                 "IPs":  "172.25.206.13",
-                                 "HasRestarted":  false
-                             },
-                             {
-                                 "Name":  "eight-four.local",
-                                 "BootTime":  "\/Date(1748443151681)\/",
-                                 "IPs":  "",
-                                 "HasRestarted":  false
+                                 "Name":  "al2023-mysql",
+                                 "BootTime":  "\/Date(1748469334009)\/",
+                                 "IPs":  "172.25.223.242"
                              }
-                         ]
+                         ],
+    "hosts_file_updated":  false,
+    "RefreshNeeded":  true,
+    "LastBootTime":  "\/Date(1748158428920)\/",
+    "switches_forwarding":  [
+
+                            ]
 }

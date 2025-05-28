@@ -1,16 +1,17 @@
 $config = Get-Content "$PSScriptRoot\\config.json" | ConvertFrom-Json
 . "$PSScriptRoot\utils.ps1"  
 
-# $ScriptConfig.runningVMs = Get-VM | Where-Object { $_.State -eq 'Running' }
-# Write-Output $ScriptConfig.runningVMs 
+$runningVMs = Get-VM | Where-Object { $_.State -eq 'Running' }
 $vmData = @()
 # $cachedVMFile = @{}
 $cachedVMFile = [PSCustomObject]@{}
+$lastBootTime = (Get-CimInstance -ClassName Win32_OperatingSystem).LastBootUpTime.ToUniversalTime()
+$hasRestarted = $false 
 
-# if (-not $ScriptConfig.runningVms) {
-#     Write-Log 'No VMs. Shutting down.'
-#     return
-# }
+if (-not $runningVms) {
+    Write-Log 'No VMs. Shutting down.'
+    return
+}
 
 if (-not (Test-Path $config.hypervHostsCache)) {
     Write-Log "Can't find cache. Building cache."
@@ -23,21 +24,31 @@ if (-not $cachedVMFile.LastBootTime) {
     Create-HyperV-Hosts-Cache
 }
 
+$systemBootTimeDifference = (
+    $cachedVMFile.LastBootTime - $lastBootTime
+    ).Duration()
+
+if ($systemBootTimeDifference -gt [TimeSpan]::FromSeconds(30)) {
+    Create-HyperV-Hosts-Cache
+    $hasRestarted = $true
+}
+
 if ($cachedVMFile.virtual_machines.Count -eq 0) {
     Write-Log "Virtual machines are active but cache is empty. Rebuild cache."
     Create-HyperV-Hosts-Cache
     $hasRestarted = $true
 }
 
-# $vmsDetected = Detect-New-VMs
+$vmsDetected = Detect-New-VMs
 
-# if ((-not $vmsDetected) -and ( -not $hasRestarted)) {
-#     Write-Log 'No new VMs have been detected. Exiting.'
-#     return
-# } else {
-#     Write-Log 'New VMs have been detected, or the system has restarted'
-#     $refreshNeeded = $true
-# }
+if ((-not $vmsDetected) -and ( -not $hasRestarted)) {
+    Write-Log 'No new VMs have been detected. Exiting.'
+    return
+} else {
+    Write-Log 'New VMs have been detected, or the system has restarted'
+    $refreshNeeded = $true
+}
+
 
 if ($cachedVMFile.RefreshNeeded -eq $true) {
     $refreshNeeded  = $true
@@ -58,7 +69,7 @@ if ($null -eq $cachedVMFile -or $cachedVMFile -isnot [psobject]) {
 }
 $cachedVMFile.virtual_machines= @()
 
-foreach ($vm in $ScriptConfig.runningVMs) {
+foreach ($vm in $runningVMs) {
     $name = $vm.Name
     $uptime = $vm.Uptime
     $vmBootTime = (Get-Date).Add(-$uptime).ToUniversalTime()
