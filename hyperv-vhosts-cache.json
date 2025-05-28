@@ -1,15 +1,34 @@
 {
-    "boot_time":  "\/Date(1747839289500)\/",
     "virtual_machines":  [
                              {
+                                 "Name":  "01-test.local",
+                                 "BootTime":  "\/Date(1748443279010)\/",
+                                 "IPs":  "172.25.192.232",
+                                 "HasRestarted":  false
+                             },
+                             {
+                                 "Name":  "02-test.local",
+                                 "BootTime":  "\/Date(1748443421389)\/",
+                                 "IPs":  "172.25.205.57",
+                                 "HasRestarted":  false
+                             },
+                             {
+                                 "Name":  "03-test.local",
+                                 "BootTime":  "\/Date(1748443001165)\/",
+                                 "IPs":  "172.25.202.43",
+                                 "HasRestarted":  false
+                             },
+                             {
                                  "Name":  "al2023-base.local",
-                                 "Uptime":  1434973,
-                                 "IPs":  "172.25.206.13"
+                                 "BootTime":  "\/Date(1748443000478)\/",
+                                 "IPs":  "172.25.206.13",
+                                 "HasRestarted":  false
                              },
                              {
                                  "Name":  "eight-four.local",
-                                 "Uptime":  57183164,
-                                 "IPs":  "172.25.199.229"
+                                 "BootTime":  "\/Date(1748443151681)\/",
+                                 "IPs":  "",
+                                 "HasRestarted":  false
                              }
                          ]
 }

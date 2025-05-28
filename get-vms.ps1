@@ -49,7 +49,7 @@ foreach ($vm in $runningVMs) {
             $likelyNewIP = $true
         } else {
             $hasRestarted = $false
-            return
+            # return
             }
 
         if ($likelyNewIP) {
