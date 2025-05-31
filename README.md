@@ -1,10 +1,12 @@
 # Hyper V Generatory from Hosts File
 
+These scripts add Hyper-V VM IPs to the hosts file on Windows, since the Default Switch on Hyper-V does not allow static IPs. 
+
 This repo
  - Updates the Windows host file with the IPs of any VMs running on the default switch of Hyper-V.
  - Ensures that the Windows Subsystem for Linux (WSL) Switch and Default Switche on Hyper-V are forwarding to each other (Credit for that: https://automatingops.com/allowing-windows-subsystem-for-linux-to-communicate-with-hyper-v-vms)
 
- Run .\\entrypoint.sh from Powershell to automatically update the hosts file with all the IPs on your Hyper-V VMs.  
+Run .\\entrypoint.sh from Powershell to automatically update the hosts file with all the IPs on your Hyper-V VMs.  
 
 ## Description
 
