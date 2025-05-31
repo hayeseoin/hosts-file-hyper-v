@@ -1,16 +1,8 @@
 $config = Get-Content "$PSScriptRoot\\config.json" | ConvertFrom-Json
 . "$PSScriptRoot\utils.ps1"  
 
-# $ScriptConfig.runningVMs = Get-VM | Where-Object { $_.State -eq 'Running' }
-# Write-Output $ScriptConfig.runningVMs 
 $vmData = @()
-# $cachedVMFile = @{}
 $cachedVMFile = [PSCustomObject]@{}
-
-# if (-not $ScriptConfig.runningVms) {
-#     Write-Log 'No VMs. Shutting down.'
-#     return
-# }
 
 if (-not (Test-Path $config.hypervHostsCache)) {
     Write-Log "Can't find cache. Building cache."
@@ -27,26 +19,6 @@ if ($cachedVMFile.virtual_machines.Count -eq 0) {
     Write-Log "Virtual machines are active but cache is empty. Rebuild cache."
     Create-HyperV-Hosts-Cache
     $hasRestarted = $true
-}
-
-# $vmsDetected = Detect-New-VMs
-
-# if ((-not $vmsDetected) -and ( -not $hasRestarted)) {
-#     Write-Log 'No new VMs have been detected. Exiting.'
-#     return
-# } else {
-#     Write-Log 'New VMs have been detected, or the system has restarted'
-#     $refreshNeeded = $true
-# }
-
-if ($cachedVMFile.RefreshNeeded -eq $true) {
-    $refreshNeeded  = $true
-    Write-Log 'Cache reports refresh needed.'
-}
-
-if (-not $refreshNeeded) {
-    Write-Log 'No refresh needed. Exiting.'
-    return
 }
 
 $newVMList = @()
@@ -135,10 +107,7 @@ if (-not $anyRestarted) {
 Write-Log "diff is: $diff_log"
 Write-Log "Has anything been restarted? $anyRestarted_log" 
 
-if ($refreshNeeded) {
-    $cachedVMFile.RefreshNeeded = $false
-    $cachedVMFile | ConvertTo-Json -Depth 3 | Set-Content $config.hypervHostsCache
-}
+$cachedVMFile | ConvertTo-Json -Depth 3 | Set-Content $config.hypervHostsCache
 
 if ((-not $diff) -and ($anyRestarted.Count -eq 0)) {
     Write-Log 'Noting to update'
@@ -146,6 +115,5 @@ if ((-not $diff) -and ($anyRestarted.Count -eq 0)) {
 }
 
 Write-Log 'Updating cache file.'
-$cachedVMFile.hosts_file_updated = $false
 $cachedVMFile.virtual_machines = $newVMList
 $cachedVMFile | ConvertTo-Json -Depth 3 | Set-Content $config.hypervHostsCache

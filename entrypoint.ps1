@@ -1,21 +1,31 @@
 $config = Get-Content "$PSScriptRoot\\config.json" | ConvertFrom-Json
 . "$PSScriptRoot\utils.ps1"  
 
-# echo $ScriptConfig.runningVms
-# return
-
 if (-not $ScriptConfig.runningVms) {
     Write-Log 'No VMs. Shutting down.'
     return
 }
 
+# Check if Default and WSL switches are forwading to each other
+Write-Log 'Checking if Default and WSL switches are forwading to each other.'
+$switches_forwarding = Check-Switches-Forwarding
+if (-not $switches_forwarding) {
+    Write-Log "Default and WSL switches are not forwading to each other."
+    Set-Switches-Forwarding
+} else {Write-Log "Switches are already forwarding to each other."}
+
 # Assume system hasn't been restarted, and switches are listening to each other
 $hasRestarted = $false
-$switches_forwarding = $true 
 
 # Initialize cache if it doesn't exist
+if (-not (Test-Path $config.hypervHostsCache)) {
+    Write-Log "Cache file doesn't exist - creating it."
+    New-Item -Path $config.hypervHostsCache -ItemType File -Force | Out-Null
+}
+
 $cachedVMFile = Get-Content $config.hypervHostsCache | ConvertFrom-Json
 if (-not $cachedVMFile.LastBootTime) {
+    Write-Log "Initialize cache if it already isn't."
     Create-HyperV-Hosts-Cache
 }
 
@@ -29,7 +39,6 @@ $systemBootTimeDifference = (
 if ($systemBootTimeDifference -gt [TimeSpan]::FromSeconds(10)) {
     Create-HyperV-Hosts-Cache
     $hasRestarted = $true
-    $switches_forwarding = $false
 }
 
 if ($cachedVMFile.virtual_machines.IPs | Where-Object {-not $_}) {
@@ -42,25 +51,17 @@ if ($cachedVMFile.virtual_machines | Where-Object {$_.IPs -eq ""}) {
     $hasRestarted = $true
 }
 
-$vmsDetected = Detect-New-VMs
 
-if ((-not $vmsDetected) -and ( -not $hasRestarted)) {
-    Write-Log 'No new VMs have been detected. Exiting.'
-    return
-} else {
-    Write-Log 'New VMs have been detected, or the system has restarted'
-    $refreshNeeded = $true
-}
+# # Check for new VMs - not needed if not run on a schedule
+# $vmsDetected = Detect-New-VMs
 
-# Have switches forward to each other
-if ($config.hasRestarted -or (-not $switches_forwarding)) {
-    Write-Log 'Switches might not be loaded. Re-running command.'
-    Get-NetIPInterface | Where-Object {
-    $_.InterfaceAlias -eq $configg.wslSwitch`
-        -or    $_.InterfaceAlias -eq $configg.wslSwitch `
-    } | Set-NetIPInterface -Forwarding Enabled -Verbose
-    $switches_forwarding = $true
-}
+# if ((-not $vmsDetected) -and ( -not $hasRestarted)) {
+#     Write-Log 'No new VMs have been detected. Exiting.'
+#     return
+# } else {
+#     Write-Log 'New VMs have been detected, or the system has restarted'
+#     $refreshNeeded = $true
+# }
 
 # Update VM cache and hosts file
 Write-Log "Updating VM cache."
@@ -68,3 +69,4 @@ Write-Log "Updating VM cache."
 
 Write-Log "Hosts file needs to be updated."
 . "$PSScriptRoot\update_hosts.ps1"
+

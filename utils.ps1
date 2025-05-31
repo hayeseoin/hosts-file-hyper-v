@@ -34,12 +34,43 @@ function Create-HyperV-Hosts-Cache() {
     $refreshNeeded = $true
     $data = @{ 
         LastBootTime = $bootTime 
-        RefreshNeeded = $refreshNeeded 
+        # RefreshNeeded = $refreshNeeded 
         virtual_machines = @()
-        switches_forwarding = @()
-        hosts_file_updated = $false
+        # switches_forwarding = @()
+        # hosts_file_updated = $false
     }
     $data | ConvertTo-Json | Set-Content -Path $config.hypervHostsCache
+}
+
+function Check-Switches-Forwarding() {
+    $switches = @()
+    $switches_forwarding = $false
+
+    $ifs = (Get-NetIPInterface | Where-Object {
+                $_.InterfaceAlias -eq $config.wslSwitch`
+                -or $_.InterfaceAlias -eq $config.defaultSwitch
+            }
+        )
+
+    foreach ($if in $ifs) {
+        $forwarding = $if.Forwarding
+        $switches += $forwarding
+    } 
+
+    if ($switches | Where-Object {$_}) {
+        $switches_forwarding = $true
+    }
+
+    return $switches_forwarding
+}
+
+function Set-Switches-Forwarding() {
+    Write-Log 'Enabling forwarding on switches.'
+
+    Get-NetIPInterface | Where-Object {
+    $_.InterfaceAlias -eq $config.defaultSwitch`
+        -or    $_.InterfaceAlias -eq $config.wslSwitch `
+    } | Set-NetIPInterface -Forwarding Enabled
 }
 
 function Write-Log {

@@ -6,8 +6,6 @@ This repo
 
  Run .\\entrypoint.sh from Powershell to automatically update the hosts file with all the IPs on your Hyper-V VMs.  
 
- Set up as a scheduled task to automatically poll Hyper-V for updates.
-
 ## Description
 
 There are two big frustrations with using Hyper-V to run VMs on Windows. 
@@ -18,28 +16,29 @@ Alternate switch configurations in Hyper-V can be configured to allow default co
 
 Updating the hosts file manually when using VMs is an option, but this is obviously cumbersome and can become frustrating. 
 
-This script can be set up as a scheduled task in Windows to automate this behaviour, allowing simple but robust VM usage on Hyper-V without needing to get too in depth on Hyper-V networking. 
+This script can be set up as a scheduled task in Windows triggered by Hyper-V actions to automate this behaviour, allowing simple but robust VM usage on Hyper-V without needing to get too in depth on Hyper-V networking. 
 
 ## Usage
 
 Ensure the config file is set up correctly. 
 
+I suggest to place this in C:\utils-and-scripts\windows\hyper-v-hosts\
+
 Set this up as a scheduled task in Windows. To run as a scheduled task you must run `run_hidden.vbs` otherwise an annoying Powershell popup comes up every time. 
 
 In Windows task scheduler Actions:
  - Program/script: wscript.exe
- - Add arguments: "C:\path\to\script\run_hidden.vbs"
- - Start in: "C:\path\to\script\"
+ - Add arguments: ".\\run_hidden.vbs"
+ - Start in: "C:\utils-and-scripts\windows\hyper-v-hosts"
 
+For the trigger: 
+ - Begin the task: On an event
+ - Log: Microsoft-Windows-Hyper-V-Hypervisor/Operational
+ - Source: Hyper-V-Hypervisor
+
+![alt text](images/image.png)
 
 `wslSwitch` and `defaultSwitch` must match the names of the corresponding switches in the Hyper-V Virtual Switch Manager. 
-
-`new_vm_threshold` - If a VM comes online and its running time is below this number, the host file will be updated. 
-
-This tool works by comparing the current state of Hyper-V to a cached state. The cache should rebuild at every startup. Running Hyper-V commands in powershell to investigate the current state is not terribly light. If you want to run this as a frequest scheduled task (~once per minute) then ideally we will need a fast way to check the state of Hyper-V. 
-
-It turns out that the best tradeoff between speed and reliability for checking the current state is to check on the current Running Time of the VMs. If we check for VMs with a running time below a certain threshold, we can be resonably sure those are new VMs, and it will be worthwhile to update the cache. This is controlled by `new_vm_threshold`. In my setup, I run this task once per minute. Then `new_vm_threshold` is set to 90 seconds, which means that any time a new VM comes online, it will be noticed and added to the hosts file. 
-
 
 ```json 
 #./config.json example
@@ -52,3 +51,6 @@ It turns out that the best tradeoff between speed and reliability for checking t
   "new_vm_threshold": 90000
 }
 ```
+### ---notes---
+
+The variable `new_vm_threshold` is disabled. Originally the idea of these scripts was to run a scheduled task every minute, but it makes more sense to have the scripts be triggered by Hyper-V actions. 
