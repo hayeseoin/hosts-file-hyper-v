@@ -3,23 +3,7 @@ $config = Get-Content "$PSScriptRoot\\config.json" | ConvertFrom-Json
 
 $vmData = @()
 $cachedVMFile = [PSCustomObject]@{}
-
-if (-not (Test-Path $config.hypervHostsCache)) {
-    Write-Log "Can't find cache. Building cache."
-    Create-HyperV-Hosts-Cache
-}
-
 $cachedVMFile = Get-Content $config.hypervHostsCache | ConvertFrom-Json
-
-if (-not $cachedVMFile.LastBootTime) {
-    Create-HyperV-Hosts-Cache
-}
-
-if ($cachedVMFile.virtual_machines.Count -eq 0) {
-    Write-Log "Virtual machines are active but cache is empty. Rebuild cache."
-    Create-HyperV-Hosts-Cache
-    $hasRestarted = $true
-}
 
 $newVMList = @()
 
@@ -66,15 +50,26 @@ foreach ($vm in $ScriptConfig.runningVMs) {
 
     Write-Log "$name or system has been restarted since last cache? $hasRestarted"
 
-    if ($hasRestarted -or (-not $cachedVM)) {
-        Write-Log "IP for $name is being reset? True"
-        $ips = (Get-VMNetworkAdapter -VMName $name).IPAddresses | Where-Object {
-            $_ -match '^\d{1,3}(\.\d{1,3}){3}$' 
-        }    
-    } else { Write-Log "IP for $name is being reset? False" }
 
-    Write-Log "Boot time of VM is:  $vmBootTime"
-    Write-Log "Cached boot time is $cachedvmBootTime"
+    $maxRetries = 10
+    $retryDelay = 5
+    $attempt = 0
+
+    do {
+        $ips = (Get-VMNetworkAdapter -VMName $name).IPAddresses | Where-Object {
+            $_ -match '^\d{1,3}(\.\d{1,3}){3}$'
+        }
+
+        if ($ips.Count -eq 0) {
+            Write-Log "No IP assigned to VM '$name' yet. Attempt $($attempt + 1) of $maxRetries. Retrying in $retryDelay seconds..."
+            Start-Sleep -Seconds $retryDelay
+            $attempt++
+        }
+    } while ($ips.Count -eq 0 -and $attempt -lt $maxRetries)
+
+    if ($attempt -eq $maxRetries) {
+        Write-Log "Could not fetch IP for '$name'."
+    }
 
     $newVMList += [PSCustomObject]@{
         Name   = $name
@@ -89,28 +84,6 @@ if (-not $cachedVMFile.virtual_machines) {
     Write-Log 'Updating cache file.'
     $cachedVMFile.virtual_machines = $newVMList
     $cachedVMFile | ConvertTo-Json -Depth 3 | Set-Content $config.hypervHostsCache
-    return
-}
-
-$oldSorted = $cachedVMFile.virtual_machines | Sort-Object Name
-$newSorted = $newVMList | Sort-Object Name
-$diff =  Compare-Object $oldSorted $newSorted -Property Name, IPs
-$anyRestarted = $newSorted | Where-Object { $_.HasRestarted -eq $true }
-
-if (-not $diff) {
-    $diff_log = 'No'
-} else { $diff_log = $diff}
-if (-not $anyRestarted) {
-    $anyRestarted_log = 'No'
-} else {$anyRestarted_log = $anyRestarted}
-
-Write-Log "diff is: $diff_log"
-Write-Log "Has anything been restarted? $anyRestarted_log" 
-
-$cachedVMFile | ConvertTo-Json -Depth 3 | Set-Content $config.hypervHostsCache
-
-if ((-not $diff) -and ($anyRestarted.Count -eq 0)) {
-    Write-Log 'Noting to update'
     return
 }
 

@@ -6,18 +6,25 @@ if (-not $ScriptConfig.runningVms) {
     return
 }
 
-# Check if Default and WSL switches are forwading to each other
-Write-Log 'Checking if Default and WSL switches are forwading to each other.'
-$switches_forwarding = Check-Switches-Forwarding
-if (-not $switches_forwarding) {
-    Write-Log "Default and WSL switches are not forwading to each other."
-    Set-Switches-Forwarding
-} else {Write-Log "Switches are already forwarding to each other."}
+# Check if the --no-wsl flag is provided
+$noWsl = $false
+if ($args -contains "--no-wsl") {
+    $noWsl = $true
+    Write-Log "Flag --no-wsl detected. Skipping WSL switch checks."
+}
 
-# Assume system hasn't been restarted, and switches are listening to each other
-$hasRestarted = $false
+if (-not $noWsl) {
+    Write-Log 'Checking if Default and WSL switches are forwarding to each other.'
+    $switches_forwarding = Check-Switches-Forwarding
+    if (-not $switches_forwarding) {
+        Write-Log "Default and WSL switches are not forwarding to each other."
+        Set-Switches-Forwarding
+    } else {
+        Write-Log "Switches are already forwarding to each other."
+    }
+}
 
-# Initialize cache if it doesn't exist
+# Create the cache if it doesn't exist
 if (-not (Test-Path $config.hypervHostsCache)) {
     Write-Log "Cache file doesn't exist - creating it."
     New-Item -Path $config.hypervHostsCache -ItemType File -Force | Out-Null
@@ -38,30 +45,7 @@ $systemBootTimeDifference = (
 
 if ($systemBootTimeDifference -gt [TimeSpan]::FromSeconds(10)) {
     Create-HyperV-Hosts-Cache
-    $hasRestarted = $true
 }
-
-if ($cachedVMFile.virtual_machines.IPs | Where-Object {-not $_}) {
-    $hasRestarted = $true
-}
-
-# In case an empty IP gets loaded in
-if ($cachedVMFile.virtual_machines | Where-Object {$_.IPs -eq ""}) {
-    Write-Log "No IP assigned to some VMs. Rebuilding cache."
-    $hasRestarted = $true
-}
-
-
-# # Check for new VMs - not needed if not run on a schedule
-# $vmsDetected = Detect-New-VMs
-
-# if ((-not $vmsDetected) -and ( -not $hasRestarted)) {
-#     Write-Log 'No new VMs have been detected. Exiting.'
-#     return
-# } else {
-#     Write-Log 'New VMs have been detected, or the system has restarted'
-#     $refreshNeeded = $true
-# }
 
 # Update VM cache and hosts file
 Write-Log "Updating VM cache."
