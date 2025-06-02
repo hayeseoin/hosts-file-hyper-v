@@ -1,4 +1,4 @@
-# Hyper V Generatory from Hosts File
+# Hyper-V Hosts File Manager
 
 The scripts in this repo add the IPs of any running Hyper-V VMs to the hosts file on windows. They also enable forwarding between the WSL and Default Switch in Hyper-V, enabling SSH from WSL to a Hyper-V VM.
 
