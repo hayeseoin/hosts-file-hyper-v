@@ -51,7 +51,7 @@ foreach ($vm in $ScriptConfig.runningVMs) {
     Write-Log "$name or system has been restarted since last cache? $hasRestarted"
 
 
-    $maxRetries = 10
+    $maxRetries = 12
     $retryDelay = 5
     $attempt = 0
 
