@@ -5,10 +5,10 @@ $cachedVMFile = Get-Content $config.hypervHostsCache | ConvertFrom-Json
 $hostsFile = Get-Content $config.hosts_file_path
 $updatedHostsFile = $hostsFile.Clone()
 
-if ($hostsFile.Count -lt 2) {
-    Write-Log "WARNING: Hosts file appears to be empty or malformed. Aborting to avoid overwrite."
-    exit 1
-}
+# if ($hostsFile.Count -lt 2) {
+#     Write-Log "WARNING: Hosts file appears to be empty or malformed. Aborting to avoid overwrite."
+#     exit 1
+# }
 
 foreach ($hypervHost in $cachedVMFile.virtual_machines) {
     $name = $hypervHost.Name
@@ -42,4 +42,10 @@ foreach ($hypervHost in $cachedVMFile.virtual_machines) {
 
 # echo $updatedHostsFile
 Write-Log "Updating hosts file."
+
+if ($updatedHostsFile.Count -lt 2) {
+    Write-Log "WARNING: Hosts file appears to be empty or malformed. Aborting to avoid overwrite."
+    exit 1
+}
+
 $updatedHostsFile | Set-Content -Path $config.hosts_file_path -Encoding ASCII
