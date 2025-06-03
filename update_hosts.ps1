@@ -40,10 +40,11 @@ foreach ($hypervHost in $cachedVMFile.virtual_machines) {
     }
 }
 
-# echo $updatedHostsFile
+$updatedHostsFileLength = $updatedHostsFile.Count
 Write-Log "Updating hosts file."
+Write-Log "Lenth of updated hosts file is $updatedHostsFileLength"
 
-if ($updatedHostsFile.Count -lt 2) {
+if ($updatedHostsFile.Count -lt 1) {
     Write-Log "WARNING: Hosts file appears to be empty or malformed. Aborting to avoid overwrite."
     exit 1
 }
