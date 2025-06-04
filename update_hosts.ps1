@@ -70,4 +70,39 @@ if ($updatedHostsFile.Count -lt 1) {
     exit 1
 }
 
-$updatedHostsFile | Set-Content -Path $config.hosts_file_path -Encoding ASCII
+# $updatedHostsFile | Set-Content -Path $config.hosts_file_path -Encoding ASCII
+
+# Generate timestamped temp path
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$tempHostsPath = "$($config.hosts_file_path)-hvhm-$timestamp"
+
+# Write to the temp file
+$updatedHostsFile | Set-Content -Path $tempHostsPath -Encoding ASCII -Force
+Write-Log "Wrote updated hosts file to temp path: $tempHostsPath"
+
+# Create a backup of the existing hosts file
+$backupPath = "$($config.hosts_file_path).hvhm_bak_$timestamp"
+try {
+    Copy-Item -Path $config.hosts_file_path -Destination $backupPath -Force
+    Write-Log "Backed up original hosts file to: $backupPath"
+} catch {
+    Write-Log "ERROR: Failed to back up hosts file: $($_.Exception.Message)"
+    throw
+}
+
+# Replace old hosts file with new one 
+try {
+    Remove-Item -Path $config.hosts_file_path -Force
+    Write-Log "Deleted original hosts file."
+} catch {
+    Write-Log "ERROR: Failed to delete original hosts file: $($_.Exception.Message)"
+    throw
+}
+
+try {
+    Move-Item -Path $tempHostsPath -Destination $config.hosts_file_path -Force
+    Write-Log "Replaced hosts file with updated version: $tempHostsPath"
+} catch {
+    Write-Log "ERROR: Failed to move temp hosts file into place: $($_.Exception.Message)"
+    throw
+}
