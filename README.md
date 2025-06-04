@@ -1,8 +1,10 @@
 # Hyper-V Hosts File Manager
 
-### Beta note:
- - sometimes this deletes the whole hosts file. I don't know why
- - if the hosts file is empty, this won't work
+> ### Beta note:
+>  - sometimes this deletes the whole hosts file. I don't know why
+>  - if the hosts file is empty, this won't work
+> These issues might be fixed in branch hosts-file-debug - still testing
+> - need to handle the case where there are duplicate hyper-v names
 
 The scripts in this repo add the IPs of any running Hyper-V VMs to the hosts file on windows. They also enable forwarding between the WSL and Default Switch in Hyper-V, enabling SSH from WSL to a Hyper-V VM.
 
