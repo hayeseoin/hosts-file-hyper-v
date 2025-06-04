@@ -5,10 +5,13 @@ $cachedVMFile = Get-Content $config.hypervHostsCache | ConvertFrom-Json
 $hostsFile = Get-Content $config.hosts_file_path
 $updatedHostsFile = $hostsFile.Clone()
 
-# if ($hostsFile.Count -lt 2) {
-#     Write-Log "WARNING: Hosts file appears to be empty or malformed. Aborting to avoid overwrite."
-#     exit 1
-# }
+$vmNames = $cachedVMFile.virtual_machines.Name | ForEach-Object { $_ -replace '\.local$', '' }
+$duplicateNames = $vmNames | Group-Object | Where-Object { $_.Count -gt 1 }
+
+if ($duplicateNames) {
+    Write-Log "Duplicate VM names found in cache: $($duplicateNames.Name -join ', ')"
+    exit 1
+}
 
 foreach ($hypervHost in $cachedVMFile.virtual_machines) {
     $name = $hypervHost.Name
